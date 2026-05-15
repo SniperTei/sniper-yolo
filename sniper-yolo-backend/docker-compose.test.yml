@@ -1,0 +1,115 @@
+version: '3.8'
+
+services:
+  # FastAPI 后端服务
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        ENVIRONMENT: test
+    image: sniper-yolo-backend:test
+    container_name: sniper_yolo_backend_test
+    restart: unless-stopped
+    ports:
+      - "8041:8041"  # 测试环境使用 8041 端口
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env.test
+    networks:
+      - sniper_test_network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8041/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:15-alpine
+    container_name: sniper_postgres_test
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=sniper
+      - POSTGRES_PASSWORD=CHANGE_THIS_PASSWORD
+      - POSTGRES_DB=sniper_yolo_test
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --locale=C
+    volumes:
+      - postgres_data_test:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    ports:
+      - "5434:5432"  # 宿主机5434端口映射到容器5432
+    networks:
+      - sniper_test_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sniper -d sniper_yolo_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: sniper_redis_test
+    restart: unless-stopped
+    ports:
+      - "6381:6379"
+    volumes:
+      - redis_data_test:/data
+    networks:
+      - sniper_test_network
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Nginx 反向代理
+  nginx:
+    image: nginx:alpine
+    container_name: sniper_nginx_test
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    volumes:
+      - ./nginx/nginx.test.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/logs/test:/var/log/nginx
+    depends_on:
+      - web
+    networks:
+      - sniper_test_network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  sniper_test_network:
+    name: sniper_test_network
+    driver: bridge
+
+volumes:
+  postgres_data_test:
+    driver: local
+  redis_data_test:
+    driver: local

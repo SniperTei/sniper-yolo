@@ -1,0 +1,66 @@
+// 颜色变量定义
+$primary-color: #1989fa;
+$text-primary: #323233;
+$text-secondary: #969799;
+$bg-primary: #ffffff;
+$bg-secondary: #f7f8fa;
+$bg-success: #e8f5e9;
+$bg-info: #e0f2f1;
+$bg-warning: #fff3e0; // 更鲜艳的橘黄色警告背景
+$bg-danger: #ffebee; // 更醒目的红色危险背景
+
+// 文本颜色变量
+$text-warning: #ff6700; // 橘黄色文本
+$text-danger: #f5222d;  // 红色文本
+
+
+
+// 新增主题色
+$theme-red: #ee0a24;
+$theme-orange: #ff976a;
+// $theme-blue: #1989fa;
+$theme-purple: #722ed1;
+$theme-green: #07c160;
+
+// 边框圆角
+$border-radius: 12px;
+$border-radius-small: 8px;
+
+// 间距变量
+$spacing-base: 16px;
+$spacing-small: 12px;
+$spacing-tiny: 8px;
+
+// 扩展变量
+$spacing-xs: 4px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+$spacing-xxl: 48px;
+
+$border-radius-lg: 16px;
+$border-radius-full: 999px;
+
+// 字体大小
+$font-size-xs: 10px;
+$font-size-sm: 12px;
+$font-size-md: 14px;
+$font-size-lg: 16px;
+$font-size-xl: 18px;
+$font-size-xxl: 20px;
+
+// 阴影
+$shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+$shadow-md: 0 2px 8px rgba(0, 0, 0, 0.1);
+$shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.15);
+
+// 移动端特定变量
+$safe-area-inset-top: env(safe-area-inset-top);
+$safe-area-inset-bottom: env(safe-area-inset-bottom);
+$status-bar-height: 44px;
+$bottom-tab-bar-height: 50px;
+
+// 过渡动画
+$transition-fast: 0.2s ease;
+$transition-normal: 0.3s ease;
+$transition-slow: 0.5s ease;

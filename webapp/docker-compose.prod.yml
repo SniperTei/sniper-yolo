@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  # 前端 Web 应用
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_APP_ENV: production
+        VITE_APP_TITLE: "Sniper Webapp"
+    image: sniper-webapp:prod
+    container_name: sniper_webapp_prod
+    restart: always
+    ports:
+      - "80:80"    # HTTP
+      - "443:443"  # HTTPS（如需 SSL）
+    networks:
+      - sniper_prod_network
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+networks:
+  sniper_prod_network:
+    external: true  # 连接到后端的生产网络
+    name: sniper_prod_network

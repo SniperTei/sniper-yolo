@@ -1,0 +1,42 @@
+// 引入变量
+// @import './variables.scss';
+@use '@/styles/variables.scss' as *;
+
+// 安全区域适配
+.safe-area-top {
+  padding-top: $safe-area-inset-top;
+}
+
+.safe-area-bottom {
+  padding-bottom: $safe-area-inset-bottom;
+}
+
+// 响应式布局辅助类
+.mobile-only {
+  display: none;
+
+  @media screen and (max-width: 768px) {
+    display: block;
+  }
+}
+
+.desktop-only {
+  display: block;
+
+  @media screen and (max-width: 768px) {
+    display: none;
+  }
+}
+
+// 不同屏幕尺寸的响应式字体
+.responsive-font {
+  font-size: $font-size-md;
+
+  @media screen and (min-width: 768px) {
+    font-size: $font-size-lg;
+  }
+
+  @media screen and (max-width: 480px) {
+    font-size: $font-size-sm;
+  }
+}
