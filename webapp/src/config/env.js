@@ -26,7 +26,7 @@ const baseConfig = {
 const environmentConfigs = {
   // 开发环境配置
   dev: {
-    apiBaseUrl: import.meta.env.VITE_APP_API_URL || 'http://localhost:8000',
+    apiBaseUrl: import.meta.env.VITE_APP_API_URL || '',
     debug: true,
     requestTimeout: 30000,
   },

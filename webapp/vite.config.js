@@ -18,7 +18,7 @@ export default defineConfig({
   // },
   server: {
     host: '0.0.0.0',
-    port: 5173,
+    port: 5178,
     cors: true,
     https: false,
     proxy: {
@@ -29,7 +29,7 @@ export default defineConfig({
         secure: false, // 不验证SSL证书
         // 配置请求头
         headers: {
-          'Origin': 'http://localhost:5173',
+          'Origin': 'http://localhost:5178',
           'X-Requested-With': 'XMLHttpRequest'
         },
         // 配置超时时间
