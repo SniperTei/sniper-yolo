@@ -19,6 +19,8 @@ import Fun from '@/views/fun/FunList.vue'
 import AIChat from '@/views/study/AIChat.vue'
 // Coconut Bridge 测试
 import CoconutTest from '@/views/study/CoconutTest.vue'
+// 今天吃什么
+import WhatToEat from '@/views/what-to-eat/WhatToEat.vue'
 
 
 const router = createRouter({
@@ -113,6 +115,12 @@ const router = createRouter({
       path: '/coconut-test',
       name: 'coconutTest',
       component: CoconutTest,
+    },
+    // 今天吃什么
+    {
+      path: '/what-to-eat',
+      name: 'whatToEat',
+      component: WhatToEat,
     },
   ],
 })

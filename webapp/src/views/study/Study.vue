@@ -170,7 +170,7 @@ const functionItems = ref([
     description: '老虎机随机选餐 + AI大厨推荐，帮你解决今天吃什么的世纪难题',
     type: 'page',
     functionName: 'whatToEat',
-    url: '/what',
+    url: '/what-to-eat',
     categories: ['AI技术', '趣味']
   }
 ])
