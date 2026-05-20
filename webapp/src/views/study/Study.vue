@@ -79,7 +79,7 @@ const loading = ref(false)
 const finished = ref(false)
 
 // 标签列表
-const tags = ref(['全部', 'AI技术', 'OCR识别', '图像处理', '人脸识别', '二维码扫描', 'coconut测试'])
+const tags = ref(['全部', 'AI技术', 'OCR识别', '图像处理', '人脸识别', '二维码扫描', 'coconut测试', '趣味'])
 
 // 功能列表数据
 const functionItems = ref([
@@ -163,6 +163,15 @@ const functionItems = ref([
     functionName: 'coconutTest',
     url: '/coconut-test',
     categories: ['coconut测试']
+  },
+  {
+    id: '10',
+    name: '今天吃什么',
+    description: '老虎机随机选餐 + AI大厨推荐，帮你解决今天吃什么的世纪难题',
+    type: 'page',
+    functionName: 'whatToEat',
+    url: '/what',
+    categories: ['AI技术', '趣味']
   }
 ])
 
