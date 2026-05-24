@@ -7,7 +7,7 @@ import { get, post, put, del } from '@/utils/request'
  */
 export function getFunList(params) {
   console.log("参数:" + params)
-  return get('/api/v1/fun/', params)
+  return get('/api/v1/funs/', params)
 }
 
 /**
@@ -20,7 +20,7 @@ export function createFun(params) {
     ...params
   }
   console.log("参数:" + data)
-  return post('/api/v1/fun/', data)
+  return post('/api/v1/funs/', data)
 }
 
 /**
@@ -29,7 +29,7 @@ export function createFun(params) {
  * @returns {Promise}
  */
 export function getFunDetail(funId) {
-  return get(`/api/v1/fun/${funId}`)
+  return get(`/api/v1/funs/${funId}`)
 }
 
 /**
@@ -42,7 +42,7 @@ export function updateFun(funId, params) {
   const data = {
     ...params
   }
-  return put(`/api/v1/fun/${funId}`, data)
+  return put(`/api/v1/funs/${funId}`, data)
 }
 
 /**
@@ -51,5 +51,5 @@ export function updateFun(funId, params) {
  * @returns {Promise}
  */
 export function deleteFun(funId) {
-  return del(`/api/v1/fun/${funId}`)
+  return del(`/api/v1/funs/${funId}`)
 }

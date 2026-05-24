@@ -30,45 +30,45 @@
       <div class="search-bar">
         <i class="van-icon van-icon-search search-icon"></i>
         <input
-          v-model="searchParams.name"
+          v-model="searchParams.title"
           type="text"
           placeholder="搜索娱乐活动..."
           class="search-input"
           @keyup.enter="handleSearch"
         />
-        <button v-if="searchParams.name" @click="clearSearch" class="clear-btn">
+        <button v-if="searchParams.title" @click="clearSearch" class="clear-btn">
           <i class="van-icon van-icon-clear"></i>
         </button>
       </div>
 
-      <!-- Type Filter -->
+      <!-- Flavor Filter -->
       <div class="filter-section">
-        <div class="filter-label">类型</div>
+        <div class="filter-label">风格</div>
         <div class="filter-options">
           <span
-            v-for="option in typeOptions"
+            v-for="option in flavorOptions"
             :key="option.value"
             class="filter-tag"
-            :class="{ active: searchParams.type === option.value }"
-            @click="selectType(option.value)"
+            :class="{ active: searchParams.flavor === option.value }"
+            @click="selectFlavor(option.value)"
           >
             {{ option.text }}
           </span>
         </div>
       </div>
 
-      <!-- People Filter -->
+      <!-- Rating Filter -->
       <div class="filter-section">
-        <div class="filter-label">人数</div>
+        <div class="filter-label">评分</div>
         <div class="filter-options">
           <span
-            v-for="option in peopleOptions"
-            :key="option.value"
+            v-for="score in ratingOptions"
+            :key="score"
             class="filter-tag"
-            :class="{ active: searchParams.people === option.value }"
-            @click="selectPeople(option.value)"
+            :class="{ active: searchParams.min_star === score }"
+            @click="selectMinRating(score)"
           >
-            {{ option.text }}
+            {{ score }}星+
           </span>
         </div>
       </div>
@@ -81,19 +81,19 @@
         <span class="result-count">共 {{ totalCount }} 个娱乐活动</span>
         <div v-if="hasActiveFilters" class="active-filters">
           <span
-            v-if="searchParams.type"
+            v-if="searchParams.flavor"
             class="filter-chip"
-            @click="selectType('')"
+            @click="selectFlavor('')"
           >
-            {{ getTypeText(searchParams.type) }}
+            {{ getFlavorText(searchParams.flavor) }}
             <i class="van-icon van-icon-cross"></i>
           </span>
           <span
-            v-if="searchParams.people"
+            v-if="searchParams.min_star"
             class="filter-chip"
-            @click="selectPeople('')"
+            @click="selectMinRating(0)"
           >
-            {{ getPeopleText(searchParams.people) }}
+            {{ searchParams.min_star }}星+
             <i class="van-icon van-icon-cross"></i>
           </span>
         </div>
@@ -105,12 +105,11 @@
           v-for="item in funList"
           :key="item.id"
           class="fun-card"
-          @click="goToDetail(item.id)"
         >
           <div class="card-image-wrapper">
             <img
-              :src="item.image"
-              :alt="item.name"
+              :src="item.cover"
+              :alt="item.title"
               @error="handleImageError"
               class="card-image"
             />
@@ -122,24 +121,22 @@
           </div>
 
           <div class="card-content">
-            <h3 class="card-title">{{ item.name }}</h3>
+            <h3 class="card-title">{{ item.title }}</h3>
 
             <div class="card-tags">
-              <span v-if="item.type" class="tag type-tag">{{ item.type }}</span>
-              <span v-if="item.people" class="tag people-tag">{{ item.people }}人</span>
+              <span v-if="item.flavor" class="tag flavor-tag">{{ item.flavor }}</span>
               <span v-for="(tag, idx) in item.tags" :key="idx" class="tag">
                 {{ tag }}
               </span>
             </div>
 
-            <p class="card-description">{{ item.description }}</p>
+            <p class="card-description">{{ item.content }}</p>
 
             <div class="card-footer">
-              <div class="location">
-                <i class="van-icon van-icon-location-o"></i>
-                <span>{{ item.location }}</span>
+              <div class="maker">
+                <span>{{ item.maker }}</span>
               </div>
-              <div class="price">¥{{ item.price }}</div>
+              <div class="time">{{ formatTime(item.create_time) }}</div>
             </div>
           </div>
         </div>
@@ -155,7 +152,7 @@
       <div v-else class="empty-state">
         <div class="empty-icon">🎮</div>
         <h3>暂无娱乐活动</h3>
-        <p>发现更多有趣的活动吧</p>
+        <p>点击右上角添加您发现的精彩活动</p>
       </div>
     </div>
   </div>
@@ -165,6 +162,7 @@
 import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import placeholderImage from '@/assets/images/placeholder.png'
+import { getFunList } from '@/api/funApi.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -180,9 +178,11 @@ const navigateToCreate = () => {
 const searchParams = ref({
   page: 1,
   count: 10,
-  name: '',
-  type: '',
-  people: ''
+  title: '',
+  flavor: '',
+  min_star: '',
+  max_star: '',
+  tag: ''
 })
 
 const funList = ref([])
@@ -190,7 +190,7 @@ const loading = ref(false)
 const finished = ref(false)
 const totalCount = ref(0)
 
-const typeOptions = [
+const flavorOptions = [
   { text: '全部', value: '' },
   { text: '电影', value: '电影' },
   { text: '游戏', value: '游戏' },
@@ -201,118 +201,15 @@ const typeOptions = [
   { text: '展览', value: '展览' }
 ]
 
-const peopleOptions = [
-  { text: '不限', value: '' },
-  { text: '1-2人', value: '2' },
-  { text: '3-5人', value: '5' },
-  { text: '6-10人', value: '10' },
-  { text: '10人+', value: '10+' }
-]
-
-const mockData = {
-  "code": "000000",
-  "statusCode": 200,
-  "msg": "获取娱乐项目列表成功",
-  "data": {
-    "funItems": [
-      {
-        "id": "1",
-        "name": "星际影城",
-        "description": "豪华IMAX影城，提供最新电影放映，舒适的观影环境",
-        "image": "https://via.placeholder.com/400x300?text=星际影城",
-        "tags": ["IMAX", "休闲"],
-        "star": 4.7,
-        "type": "电影",
-        "people": "不限",
-        "location": "市中心",
-        "price": 45.00,
-        "create_time": "2024-01-01T00:00:00"
-      },
-      {
-        "id": "2",
-        "name": "欢乐桌游吧",
-        "description": "提供百余种桌游，专业的游戏指导，适合朋友聚会",
-        "image": "https://via.placeholder.com/400x300?text=欢乐桌游吧",
-        "tags": ["聚会", "社交"],
-        "star": 4.5,
-        "type": "桌游",
-        "people": "3-5人",
-        "location": "大学城",
-        "price": 68.00,
-        "create_time": "2024-01-01T12:00:00"
-      },
-      {
-        "id": "3",
-        "name": "星际密室逃脱",
-        "description": "高科技密室逃脱，多种主题场景，挑战你的智商",
-        "image": "https://via.placeholder.com/400x300?text=星际密室逃脱",
-        "tags": ["解谜", "刺激"],
-        "star": 4.8,
-        "type": "密室逃脱",
-        "people": "4-6人",
-        "location": "商业广场",
-        "price": 128.00,
-        "create_time": "2024-01-02T18:00:00"
-      },
-      {
-        "id": "4",
-        "name": "乐动KTV",
-        "description": "专业音响设备，海量曲库，私人包厢设计",
-        "image": "https://via.placeholder.com/400x300?text=乐动KTV",
-        "tags": ["K歌", "音乐"],
-        "star": 4.6,
-        "type": "KTV",
-        "people": "5-10人",
-        "location": "娱乐中心",
-        "price": 298.00,
-        "create_time": "2024-01-03T10:00:00"
-      },
-      {
-        "id": "5",
-        "name": "未来游戏体验馆",
-        "description": "VR游戏、体感游戏、主机游戏一站式体验",
-        "image": "https://via.placeholder.com/400x300?text=未来游戏体验馆",
-        "tags": ["VR", "科技"],
-        "star": 4.9,
-        "type": "游戏",
-        "people": "不限",
-        "location": "科技园区",
-        "price": 88.00,
-        "create_time": "2024-01-04T09:00:00"
-      },
-      {
-        "id": "6",
-        "name": "现代艺术展",
-        "description": "当代艺术家作品展览，沉浸式艺术体验",
-        "image": "https://via.placeholder.com/400x300?text=现代艺术展",
-        "tags": ["艺术", "文化"],
-        "star": 4.4,
-        "type": "展览",
-        "people": "不限",
-        "location": "美术馆",
-        "price": 50.00,
-        "create_time": "2024-01-05T14:00:00"
-      }
-    ],
-    "total": 32,
-    "page": 1,
-    "count": 10
-  },
-  "timestamp": "2025-11-27 13:44:02"
-}
+const ratingOptions = [0, 3, 4, 5]
 
 const hasActiveFilters = computed(() => {
-  return !!(searchParams.value.type || searchParams.value.people)
+  return !!(searchParams.value.flavor || searchParams.value.min_star)
 })
 
-const getTypeText = (type) => {
-  const option = typeOptions.find(opt => opt.value === type)
-  return option ? option.text : type
-}
-
-const getPeopleText = (people) => {
-  const option = peopleOptions.find(opt => opt.value === people)
-  return option ? option.text : people
+const getFlavorText = (flavor) => {
+  const option = flavorOptions.find(opt => opt.value === flavor)
+  return option ? option.text : flavor
 }
 
 const handleImageError = (event) => {
@@ -320,22 +217,32 @@ const handleImageError = (event) => {
 }
 
 const clearSearch = () => {
-  searchParams.value.name = ''
+  searchParams.value.title = ''
   handleSearch()
 }
 
-const selectType = (type) => {
-  searchParams.value.type = type
+const selectFlavor = (flavor) => {
+  searchParams.value.flavor = flavor
   searchParams.value.page = 1
   finished.value = false
   loadData()
 }
 
-const selectPeople = (people) => {
-  searchParams.value.people = people
+const selectMinRating = (score) => {
+  searchParams.value.min_star = score === 0 ? '' : score
   searchParams.value.page = 1
   finished.value = false
   loadData()
+}
+
+const formatTime = (timeString) => {
+  if (!timeString) return ''
+  const date = new Date(timeString)
+  return date.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  })
 }
 
 const loadData = async () => {
@@ -346,46 +253,28 @@ const loadData = async () => {
 
     try {
       console.log("请求参数:", requestParams)
-      const response = JSON.parse(JSON.stringify(mockData))
-      console.log('模拟数据响应:', response)
+      const response = await getFunList(requestParams)
 
       if (response.code === '000000') {
         processResponseData(response)
       }
     } catch (apiError) {
-      console.log('数据获取失败，使用默认模拟数据:', apiError)
-      const response = JSON.parse(JSON.stringify(mockData))
-      processResponseData(response)
+      console.log('API调用失败:', apiError)
     }
   } catch (error) {
     console.error('请求失败:', error)
-    if (funList.value.length === 0) {
-      funList.value = [{
-        id: 'fallback-1',
-        name: '示例娱乐活动',
-        description: '这是一个示例娱乐活动，展示了基本信息。',
-        image: 'https://via.placeholder.com/400x300?text=示例娱乐',
-        tags: ['示例'],
-        star: 4.5,
-        type: '示例类型',
-        people: '不限',
-        location: '示例地点',
-        price: 88.00
-      }]
-      totalCount.value = 1
-    }
   } finally {
     loading.value = false
   }
 }
 
 const processResponseData = (response) => {
-  if (response.data && response.data.funItems) {
-    const newList = response.data.funItems.map(item => ({
+  if (response.data && response.data.funs) {
+    const newList = response.data.funs.map(item => ({
       ...item,
-      image: item.image && item.image.includes('http')
-        ? item.image
-        : `https://via.placeholder.com/400x300?text=${encodeURIComponent(item.name || '娱乐')}`
+      cover: item.cover && item.cover.includes('http')
+        ? item.cover
+        : `https://via.placeholder.com/400x300?text=${encodeURIComponent(item.title || '娱乐')}`
     }))
 
     if (searchParams.value.page === 1) {
@@ -405,16 +294,7 @@ const handleSearch = () => {
   loadData()
 }
 
-const goToDetail = (id) => {
-  console.log('查看详情:', id)
-}
-
 onMounted(() => {
-  const categoryFromRoute = route.query.category
-  if (categoryFromRoute && categoryFromRoute === 'fun') {
-    console.log('从娱乐分类进入')
-  }
-
   loadData()
 
   setTimeout(() => {
@@ -831,17 +711,12 @@ const showTabBar = () => {
   font-size: 12px;
   font-weight: 500;
 
-  &.type-tag {
+  &.flavor-tag {
     background: linear-gradient(135deg, #48dbfb 0%, #1dd1a1 100%);
     color: white;
   }
 
-  &.people-tag {
-    background: rgba(29, 209, 161, 0.1);
-    color: #1dd1a1;
-  }
-
-  &:not(.type-tag):not(.people-tag) {
+  &:not(.flavor-tag) {
     background: #f5f5f5;
     color: #666;
   }
@@ -865,16 +740,12 @@ const showTabBar = () => {
   align-items: center;
 }
 
-.location {
+.maker {
   display: flex;
   align-items: center;
   gap: 4px;
   font-size: 13px;
   color: #999;
-
-  i {
-    font-size: 14px;
-  }
 
   span {
     max-width: 180px;
@@ -884,13 +755,9 @@ const showTabBar = () => {
   }
 }
 
-.price {
-  font-size: 20px;
-  font-weight: 700;
-  background: linear-gradient(135deg, #48dbfb 0%, #1dd1a1 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.time {
+  font-size: 12px;
+  color: #999;
 }
 
 /* Loading State */
